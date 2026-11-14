@@ -1,0 +1,6 @@
+{
+  "name": "TradeProof",
+  "description": "B2B Transaction Management and Settlement Intelligence Platform for Indian enterprises — connecting purchase orders, QR-verified deliveries, 3-way invoice matching, dispute evidence, and payment confirmations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
