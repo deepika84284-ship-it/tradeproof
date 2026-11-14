@@ -17,7 +17,8 @@ import {
   WorkspaceRole,
 } from '../types/tradeproof';
 
-const BASE_URL = '/api';
+const API_HOST = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const BASE_URL = API_HOST ? `${API_HOST}/api` : '/api';
 
 function getHeaders(): HeadersInit {
   const headers: HeadersInit = {
