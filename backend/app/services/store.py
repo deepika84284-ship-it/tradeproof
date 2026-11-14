@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, Any, List
-from app.database import get_database, is_connected
+from app.database import get_database, is_connected, connect_to_mongo
 from app.services.seed_data import (
     INITIAL_COMPANIES,
     INITIAL_USER_SESSION,
@@ -73,8 +73,13 @@ async def seed_mongo_if_empty():
     except Exception as e:
         logger.error(f"Error seeding MongoDB: {e}")
 
+async def ensure_db():
+    if not is_connected():
+        await connect_to_mongo()
+    return get_database()
+
 async def get_all(collection_name: str) -> List[Dict[str, Any]]:
-    db = get_database()
+    db = await ensure_db()
     if db is not None and is_connected():
         try:
             cursor = db[collection_name].find({}, {"_id": 0})
@@ -85,7 +90,7 @@ async def get_all(collection_name: str) -> List[Dict[str, Any]]:
     return memory_store.get(collection_name, [])
 
 async def get_by_id(collection_name: str, item_id: str) -> Dict[str, Any] | None:
-    db = get_database()
+    db = await ensure_db()
     if db is not None and is_connected():
         try:
             doc = await db[collection_name].find_one({"id": item_id}, {"_id": 0})
@@ -99,7 +104,7 @@ async def get_by_id(collection_name: str, item_id: str) -> Dict[str, Any] | None
     return None
 
 async def insert_one(collection_name: str, item: Dict[str, Any]) -> Dict[str, Any]:
-    db = get_database()
+    db = await ensure_db()
     clean_item = {k: v for k, v in item.items() if k != '_id'}
     if db is not None and is_connected():
         try:
@@ -112,7 +117,7 @@ async def insert_one(collection_name: str, item: Dict[str, Any]) -> Dict[str, An
     return clean_item
 
 async def update_one(collection_name: str, item_id: str, updates: Dict[str, Any]) -> Dict[str, Any] | None:
-    db = get_database()
+    db = await ensure_db()
     clean_updates = {k: v for k, v in updates.items() if k != '_id'}
     if db is not None and is_connected():
         try:
