@@ -19,6 +19,10 @@ import { IndustryType } from '../../types/tradeproof';
 import { BrandLogo } from '../ui/BrandLogo';
 import { Button, Input, Textarea } from '../ui/DesignSystem';
 
+import heroImage from '../../assets/images/hero_tradeproof_logistics_1794640508992.jpg';
+import manufacturingImage from '../../assets/images/industry_manufacturing_1794640509697.jpg';
+import textilesImage from '../../assets/images/industry_textiles_1794640509566.jpg';
+
 export type PublicPage =
   | 'landing'
   | 'overview'
@@ -59,13 +63,13 @@ const INDUSTRY_LIST: {
     name: 'Manufacturing',
     summary: 'Raw material procurement, CNC job-work, and OEM component assemblies with MTC & revision control.',
     workflowFocus: 'CAD revision lock, heat batch traceability, and partial gate receipts.',
-    image: '/src/assets/images/industry_manufacturing_1794640509697.jpg',
+    image: manufacturingImage,
   },
   {
     name: 'Textile & Garments',
     summary: 'Yarn, grey fabric, dyeing, and apparel export supply chains across Surat, Tiruppur, and Ludhiana.',
     workflowFocus: 'GSM & dye-lot verification, roll-wise shortage tracking, and shrinkage tolerances.',
-    image: '/src/assets/images/industry_textiles_1794640509566.jpg',
+    image: textilesImage,
   },
   {
     name: 'Wholesale & Distribution',
@@ -258,7 +262,7 @@ export const PublicSite: React.FC<PublicSiteProps> = ({
               <div className="lg:col-span-6 flex">
                 <div className="w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 relative min-h-[340px] shadow-md">
                   <img
-                    src="/src/assets/images/hero_tradeproof_logistics_1794640508992.jpg"
+                    src={heroImage}
                     alt="Indian industrial supply chain and verified dispatch operations"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover opacity-90"

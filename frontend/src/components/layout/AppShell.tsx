@@ -33,6 +33,7 @@ import {
 import { formatINR } from '../../utils/formatters';
 import { BrandLogo } from '../ui/BrandLogo';
 import { Breadcrumbs, Drawer, Modal } from '../ui/DesignSystem';
+import defaultAvatar from '../../assets/images/avatar_exec_india_1794640509958.jpg';
 
 export type AppSectionId =
   | 'dashboard'
@@ -395,7 +396,10 @@ export const AppShell: React.FC<AppShellProps> = ({
                 className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <img
-                  src={session.avatarUrl}
+                  src={session.avatarUrl || defaultAvatar}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = defaultAvatar;
+                  }}
                   alt={session.name}
                   referrerPolicy="no-referrer"
                   className="w-6 h-6 rounded-md object-cover bg-slate-200"
