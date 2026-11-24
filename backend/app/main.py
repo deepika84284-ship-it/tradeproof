@@ -86,6 +86,20 @@ app.include_router(notifications_router)
 @app.middleware("http")
 async def normalize_api_prefix(request: Request, call_next):
     path = request.url.path
+
+    # Check for Vercel matched path or forwarded uri
+    matched_path = request.headers.get("x-matched-path") or request.headers.get("x-forwarded-uri")
+    if matched_path and not matched_path.startswith("/api/index.py"):
+        path = matched_path
+
+    # If Vercel rewrote the path to /api/index.py or similar
+    if path.startswith("/api/index.py"):
+        path = path[len("/api/index.py"):]
+        if not path:
+            path = "/"
+
+    request.scope["path"] = path
+
     # Pass documentation and root paths as-is
     if (
         path == "/"
@@ -102,6 +116,7 @@ async def normalize_api_prefix(request: Request, call_next):
     return await call_next(request)
 
 @app.get("/", tags=["Root"])
+@app.get("/api/index.py", tags=["Root"])
 async def root():
     return {
         "service": "TradeProof Settlement Intelligence API",
