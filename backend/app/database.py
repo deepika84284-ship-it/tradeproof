@@ -16,14 +16,36 @@ def get_mongo_uri():
 def get_mongo_dbname():
     return os.getenv("MONGODB_DB_NAME", "tradeproof_prod")
 
+import asyncio
+
 client: AsyncIOMotorClient | None = None
 db: AsyncIOMotorDatabase | None = None
+_client_loop: asyncio.AbstractEventLoop | None = None
 _is_connected: bool = False
 
 async def connect_to_mongo():
-    global client, db, _is_connected
+    global client, db, _client_loop, _is_connected
     uri = get_mongo_uri()
     dbname = get_mongo_dbname()
+    
+    current_loop = None
+    try:
+        current_loop = asyncio.get_running_loop()
+    except RuntimeError:
+        pass
+
+    # If event loop changed (serverless cold start or new thread), recreate client
+    if client is not None and (_client_loop is None or _client_loop is not current_loop or _client_loop.is_closed()):
+        try:
+            client.close()
+        except Exception:
+            pass
+        client = None
+        _is_connected = False
+
+    if client is not None and _is_connected:
+        return db
+
     try:
         client = AsyncIOMotorClient(
             uri,
@@ -31,6 +53,7 @@ async def connect_to_mongo():
             connectTimeoutMS=10000,
         )
         db = client[dbname]
+        _client_loop = current_loop
         # Quick ping to test connectivity
         await client.admin.command('ping')
         _is_connected = True
@@ -41,6 +64,7 @@ async def connect_to_mongo():
             f"MongoDB connection could not be established: {e}. "
             f"Ensure MongoDB is running or check MONGODB_URI in backend/.env"
         )
+    return db
 
 async def close_mongo_connection():
     global client, _is_connected

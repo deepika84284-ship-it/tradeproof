@@ -9,12 +9,13 @@ backend_dir = Path(__file__).resolve().parent.parent
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from app.database import connect_to_mongo, close_mongo_connection, is_connected
-from app.services.store import seed_mongo_if_empty
+from app.services.store import seed_mongo_if_empty, ensure_db
 
 from app.routes.auth import router as auth_router
 from app.routes.companies import router as companies_router
@@ -82,8 +83,43 @@ app.include_router(audit_router)
 app.include_router(tickets_router)
 app.include_router(notifications_router)
 
+@app.middleware("http")
+async def normalize_api_prefix(request: Request, call_next):
+    path = request.url.path
+    # Pass documentation and root paths as-is
+    if (
+        path == "/"
+        or path.startswith("/docs")
+        or path.startswith("/openapi")
+        or path.startswith("/redoc")
+    ):
+        return await call_next(request)
+
+    # If incoming path does not start with /api, normalize to /api for internal routing
+    if not path.startswith("/api"):
+        request.scope["path"] = "/api" + path
+
+    return await call_next(request)
+
+@app.get("/", tags=["Root"])
+async def root():
+    return {
+        "service": "TradeProof Settlement Intelligence API",
+        "status": "online",
+        "version": "1.0.0",
+        "docs_url": "/docs",
+        "health_check": "/api/health",
+        "database": {
+            "connected": is_connected(),
+            "engine": "MongoDB (Motor AsyncIO)",
+            "database_name": os.getenv("MONGODB_DB_NAME", "tradeproof_prod"),
+        }
+    }
+
 @app.get("/api/health", tags=["Health"])
+@app.get("/health", tags=["Health"])
 async def health_check():
+    await ensure_db()
     return {
         "status": "healthy",
         "service": "TradeProof FastAPI Service",

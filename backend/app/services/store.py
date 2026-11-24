@@ -74,8 +74,7 @@ async def seed_mongo_if_empty():
         logger.error(f"Error seeding MongoDB: {e}")
 
 async def ensure_db():
-    if not is_connected():
-        await connect_to_mongo()
+    await connect_to_mongo()
     return get_database()
 
 async def get_all(collection_name: str) -> List[Dict[str, Any]]:
